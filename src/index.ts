@@ -3,7 +3,7 @@ import { LRUCache } from 'lru-cache';
 import { rateLimit } from 'elysia-rate-limit';
 import { existsSync, mkdirSync } from 'node:fs';
 import { resolve as resolvePath } from 'node:path';
-import { fileLogger } from '@bogeychan/elysia-logger';
+import { fileLogger, logger } from '@bogeychan/elysia-logger';
 
 const DEFAULT_PORT = 3000;
 const DEFAULT_TTL = 60 * 60 * 1000;
@@ -16,12 +16,16 @@ const cache = new LRUCache({
 
 const LOG_DIR_PATH = resolvePath('./logs');
 const URL_TESTER = /^(((https?:\/\/)?(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-_]*)?\??(?:[\-\+=&;%@\.\w_]*)#?(?:[\.\!\/\\\w]*))?)$/;
+const SERVER_PORT = Number(process.env.PORT) || DEFAULT_PORT;
 
 if (!existsSync(LOG_DIR_PATH)) {
   mkdirSync(LOG_DIR_PATH, { recursive: true });
 }
 
 new Elysia()
+  .use(
+    logger()
+  )
   .use(
     fileLogger({
       file: './logs/error.log',
@@ -86,4 +90,6 @@ new Elysia()
       }),
     }
   )
-  .listen(Number(process.env.PORT) || DEFAULT_PORT);
+  .listen(SERVER_PORT);
+
+console.log(`Server is listening on port ${SERVER_PORT}.`);
